@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AMBO FRESH · Hachalu Hundessa Campus</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#2E7D32;--green-light:#4CAF50;--green-dim:#1B5E20;
+  --green-bg:rgba(46,125,50,0.12);--green-mid:rgba(46,125,50,0.22);
+  --gold:#F9A825;--gold-light:#FDD835;--gold-bg:rgba(249,168,37,0.1);
+  --red:#E53935;--blue:#1565C0;--blue-light:#42A5F5;
+  --bg:#090E09;--surface:#101610;--surface2:#161E16;--surface3:#1E2A1E;
+  --border:rgba(255,255,255,0.07);--border-green:rgba(46,125,50,0.3);
+  --text:#EDF5ED;--muted:#6B7B6B;--muted2:#4A574A;
+  --radius:16px;--nav-h:68px;--safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent}
+h1,h2,h3,h4,h5{font-family:'Syne',sans-serif}
+#app{position:relative;width:100%;max-width:430px;margin:0 auto;height:100dvh;overflow:hidden;background:var(--bg);box-shadow:0 0 80px rgba(0,0,0,0.9)}
+@media(min-width:431px){body{display:flex;align-items:center;justify-content:center;background:#050805}#app{height:min(100dvh,900px);border-radius:40px;border:1px solid rgba(255,255,255,0.05);overflow:hidden}}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;transition:opacity 0.28s ease,transform 0.28s ease;will-change:transform,opacity}
+.screen.hidden{opacity:0;pointer-events:none;transform:translateX(22px)}
+.screen.out-left{opacity:0;pointer-events:none;transform:translateX(-22px)}
+.screen-content{padding-bottom:calc(var(--nav-h) + var(--safe-bottom) + 16px);min-height:100%}
+
+/* STATUS BAR */
+.status-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px 6px;font-size:13px;font-weight:600;font-family:'Syne',sans-serif;flex-shrink:0}
+.status-icons{display:flex;gap:6px;align-items:center;font-size:12px}
+
+/* TOP BAR */
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px;flex-shrink:0}
+.top-bar-logo{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;letter-spacing:-0.3px}
+.top-bar-logo .fresh{color:var(--green-light)}
+.top-bar-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700}
+.top-bar-back{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--text)}
+.avatar-btn{width:36px;height:36px;border-radius:50%;background:var(--green);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;flex-shrink:0}
+
+/* BOTTOM NAV */
+#bottom-nav{position:absolute;bottom:0;left:0;right:0;height:calc(var(--nav-h) + var(--safe-bottom));padding-bottom:var(--safe-bottom);background:rgba(9,14,9,0.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:none;align-items:flex-start;justify-content:space-around;padding-top:8px;z-index:100}
+#bottom-nav.visible{display:flex}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px 10px;border-radius:12px;transition:all 0.2s;border:none;background:none;color:var(--muted);min-width:58px}
+.nav-item.active{color:var(--green-light)}
+.nav-icon{font-size:21px;line-height:1}
+.nav-label{font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:0.3px}
+.nav-icon-wrap{position:relative;display:inline-flex}
+.nav-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--gold);border:2px solid var(--bg)}
+
+/* TOAST */
+#toast{position:absolute;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface3);color:var(--text);border:1px solid var(--border);border-radius:100px;padding:10px 20px;font-size:13px;font-weight:500;opacity:0;transition:all 0.3s;white-space:nowrap;z-index:500;pointer-events:none;max-width:90%}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* PULSE */
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.pulse-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green-light);animation:pulse 1.5s ease-in-out infinite;margin-right:6px}
+
+/* VIEWER OVERLAY */
+#viewer-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.95);z-index:900;display:none;flex-direction:column}
+#viewer-overlay.open{display:flex}
+.viewer-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)}
+.viewer-title-text{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;flex:1;margin:0 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.viewer-close{width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--text);flex-shrink:0}
+.viewer-body{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.viewer-type-icon{font-size:60px;margin-bottom:8px}
+.viewer-file-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text);text-align:center;margin-bottom:4px}
+.viewer-file-meta{font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px}
+.viewer-content-box{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;line-height:1.7;font-size:14px;color:var(--text)}
+.viewer-content-box h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--green-light);margin-bottom:10px;margin-top:16px}
+.viewer-content-box h3:first-child{margin-top:0}
+.viewer-content-box p{margin-bottom:10px;color:#C8D8C8}
+.viewer-content-box ul{padding-left:18px;margin-bottom:10px}
+.viewer-content-box ul li{margin-bottom:6px;color:#C8D8C8}
+.viewer-content-box code{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:12px;color:var(--green-light);font-family:monospace}
+.viewer-video-placeholder{width:100%;background:linear-gradient(135deg,#0a1f1a 0%,#0a150a 100%);border:1px solid var(--border-green);border-radius:16px;padding:40px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.viewer-play-btn{width:72px;height:72px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;box-shadow:0 0 30px rgba(46,125,50,0.4);transition:transform .2s}
+.viewer-play-btn:active{transform:scale(.95)}
+.viewer-open-btn{width:100%;background:var(--green);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;border:none;padding:16px;border-radius:14px;cursor:pointer;transition:background .2s;letter-spacing:.3px;margin-top:4px}
+.viewer-open-btn:active{background:var(--green-light)}
+.viewer-quiz-area{width:100%}
+.quiz-q{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+.quiz-q-text{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text)}
+.quiz-option{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:6px;font-size:13px;cursor:pointer;transition:all .2s}
+.quiz-option:active{background:var(--surface3)}
+.quiz-option.correct{border-color:var(--green-light);background:var(--green-bg);color:var(--green-light)}
+.quiz-option.wrong{border-color:var(--red);background:rgba(229,57,53,.1);color:#EF5350}
+
+/* AUTH */
+#screen-auth{background:var(--bg);display:flex;flex-direction:column}
+.auth-bg{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(46,125,50,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(46,125,50,0.04) 1px,transparent 1px);background-size:36px 36px}
+.auth-glow{position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:420px;height:420px;background:radial-gradient(circle,rgba(46,125,50,0.18) 0%,transparent 65%);pointer-events:none}
+.auth-inner{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:40px 24px}
+.auth-logo{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px;text-align:center}
+.auth-logo .fresh{color:var(--green-light)}
+.auth-uni{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:2px;text-align:center}
+.auth-campus-tag{font-size:11px;color:var(--green-light);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;text-align:center;font-weight:700}
+.auth-tagline{font-size:13px;color:var(--muted);margin-bottom:24px;text-align:center;line-height:1.5}
+.auth-badge{display:inline-flex;align-items:center;gap:6px;background:var(--green-bg);border:1px solid var(--border-green);border-radius:100px;padding:5px 14px;margin-bottom:24px;font-size:11px;color:var(--green-light);letter-spacing:.5px}
+.auth-card{width:100%;background:var(--surface);border:1px solid var(--border-green);border-radius:24px;padding:28px 24px 24px}
+.auth-toggle{display:flex;gap:2px;background:var(--surface2);border-radius:12px;padding:3px;margin-bottom:22px}
+.auth-toggle-btn{flex:1;padding:10px 8px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;border:none;background:transparent;color:var(--muted);border-radius:10px;cursor:pointer;transition:all .2s}
+.auth-toggle-btn.active{background:var(--surface3);color:var(--text)}
+.form-group{margin-bottom:14px}
+.form-group label{font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.form-group input,.form-group select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:13px 16px;border-radius:12px;font-size:15px;font-family:'DM Sans',sans-serif;outline:none;min-height:48px;transition:border-color .2s}
+.form-group input::placeholder{color:var(--muted2)}
+.form-group input:focus,.form-group select:focus{border-color:rgba(46,125,50,.5)}
+.form-group select{appearance:none}
+.auth-btn{width:100%;background:var(--green);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;border:none;padding:16px;border-radius:12px;cursor:pointer;transition:background .2s;min-height:52px;margin-top:6px;letter-spacing:.3px}
+.auth-btn:hover,.auth-btn:active{background:var(--green-light)}
+.welcome-pill{display:flex;align-items:center;gap:8px;background:rgba(249,168,37,.08);border:1px solid rgba(249,168,37,.2);border-radius:100px;padding:8px 16px;margin-top:16px;font-size:12px;color:var(--gold);justify-content:center}
+
+/* SHARED */
+.section-hd{display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:12px}
+.section-hd h3{font-size:14px;font-weight:700;color:var(--text)}
+.section-hd a{font-size:12px;color:var(--green-light);cursor:pointer}
+.hero-banner{margin:0 16px 16px;background:linear-gradient(135deg,#0a1f0a 0%,#101510 50%,#0a150a 100%);border:1px solid var(--border-green);border-radius:24px;padding:22px;position:relative;overflow:hidden}
+.hero-banner::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(46,125,50,.25) 0%,transparent 70%);pointer-events:none}
+.hero-welcome{font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.hero-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px}
+.hero-sub{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+.premium-status{display:inline-flex;align-items:center;gap:6px;background:rgba(249,168,37,.1);border:1px solid rgba(249,168,37,.3);border-radius:100px;padding:5px 12px;font-size:11px;color:var(--gold);font-weight:700}
+.free-status{display:inline-flex;align-items:center;gap:6px;background:var(--green-bg);border:1px solid var(--border-green);border-radius:100px;padding:5px 12px;font-size:11px;color:var(--green-light);font-weight:700}
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 16px 20px}
+.qa-btn{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:all .2s;color:var(--text)}
+.qa-btn:active{background:var(--surface2);transform:scale(.96)}
+.qa-icon{font-size:22px}
+.qa-label{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--muted);text-align:center}
+.announcement-card{margin:0 16px 16px;background:rgba(249,168,37,.07);border:1px solid rgba(249,168,37,.2);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px}
+.announcement-icon{font-size:20px;flex-shrink:0}
+.announcement-body h4{font-size:13px;font-weight:600;color:var(--gold-light);margin-bottom:3px}
+.announcement-body p{font-size:12px;color:var(--muted);line-height:1.5}
+.resource-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 20px}
+.res-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:all .2s}
+.res-card:active{transform:scale(.97)}
+.res-card-icon{font-size:28px;margin-bottom:10px}
+.res-card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px}
+.res-card-sub{font-size:11px;color:var(--muted);line-height:1.4}
+.res-card.premium{border-color:rgba(249,168,37,.3);background:linear-gradient(135deg,#1a1500 0%,var(--surface) 100%)}
+.premium-badge{display:inline-block;background:var(--gold);color:#000;font-family:'Syne',sans-serif;font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 8px;border-radius:100px;margin-top:6px}
+.course-list{margin:0 16px 20px;display:flex;flex-direction:column;gap:2px;border-radius:16px;overflow:hidden;border:1px solid var(--border)}
+.course-item{display:flex;align-items:center;gap:14px;background:var(--surface);padding:14px 16px;cursor:pointer;transition:background .2s}
+.course-item:active{background:var(--surface2)}
+.course-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.course-info{flex:1}
+.course-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:2px}
+.course-meta{font-size:11px;color:var(--muted)}
+.course-arrow{color:var(--muted2);font-size:14px}
+.doc-list{margin:0 16px 20px;display:flex;flex-direction:column;gap:2px;border-radius:16px;overflow:hidden;border:1px solid var(--border)}
+.doc-item{display:flex;align-items:center;gap:14px;background:var(--surface);padding:14px 16px;cursor:pointer;transition:background .2s}
+.doc-item:active{background:var(--surface2)}
+.doc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.doc-pdf{background:rgba(229,57,53,.1)}
+.doc-vid{background:rgba(21,101,192,.1)}
+.doc-quiz{background:rgba(249,168,37,.1)}
+.doc-note{background:rgba(46,125,50,.1)}
+.doc-info{flex:1;min-width:0}
+.doc-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-meta{font-size:11px;color:var(--muted)}
+.doc-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;flex-shrink:0}
+.badge-free{background:var(--green-bg);color:var(--green-light);border:1px solid var(--border-green)}
+.badge-premium{background:rgba(249,168,37,.12);color:var(--gold);border:1px solid rgba(249,168,37,.3)}
+.badge-locked{background:rgba(229,57,53,.1);color:#EF5350;border:1px solid rgba(229,57,53,.3)}
+.library-filters{display:flex;gap:8px;padding:0 16px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.library-filters::-webkit-scrollbar{display:none}
+.filter-pill{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:7px 16px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;cursor:pointer;transition:all .2s;flex-shrink:0}
+.filter-pill.active{background:var(--green-bg);border-color:var(--border-green);color:var(--green-light)}
+.chapter-list{margin:0 16px 20px;display:flex;flex-direction:column;gap:6px}
+.chapter-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.chapter-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;transition:background .2s}
+.chapter-header:active{background:var(--surface2)}
+.chapter-num{width:32px;height:32px;border-radius:8px;background:var(--green-bg);border:1px solid var(--border-green);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:var(--green-light);flex-shrink:0}
+.chapter-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;flex:1}
+.chapter-chevron{color:var(--muted2);font-size:14px;transition:transform .2s}
+.chapter-body{display:none;padding:0 16px 14px;border-top:1px solid var(--border)}
+.chapter-body.open{display:block}
+.material-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;border-radius:8px}
+.material-row:last-child{border-bottom:none}
+.material-row:active{background:var(--surface2)}
+.mat-icon{font-size:18px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0}
+.mat-pdf-bg{background:rgba(229,57,53,.1)}
+.mat-vid-bg{background:rgba(21,101,192,.1)}
+.mat-note-bg{background:rgba(46,125,50,.1)}
+.mat-label{flex:1;font-size:13px;color:var(--text);font-weight:500}
+.mat-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;flex-shrink:0}
+.premium-hero{margin:0 16px 16px;background:linear-gradient(135deg,#1a1200 0%,#111510 50%,#0f1a00 100%);border:1px solid rgba(249,168,37,.3);border-radius:24px;padding:24px;position:relative;overflow:hidden;text-align:center}
+.premium-hero::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:300px;height:300px;background:radial-gradient(circle,rgba(249,168,37,.12) 0%,transparent 65%);pointer-events:none}
+.premium-crown{font-size:40px;margin-bottom:12px;display:block}
+.premium-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--gold-light);margin-bottom:6px}
+.premium-subtitle{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:20px}
+.premium-price{font-family:'Syne',sans-serif;font-size:42px;font-weight:800;color:var(--gold-light)}
+.premium-price-sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+.feature-list{margin:0 16px 20px;display:flex;flex-direction:column;gap:2px;border-radius:16px;overflow:hidden;border:1px solid var(--border)}
+.feature-item{display:flex;align-items:center;gap:14px;background:var(--surface);padding:14px 16px}
+.feature-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.feature-info{flex:1}
+.feature-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:2px}
+.feature-desc{font-size:11px;color:var(--muted);line-height:1.4}
+.feature-check{color:var(--green-light);font-size:16px}
+.payment-steps{margin:0 16px 20px;display:flex;flex-direction:column;gap:10px}
+.pay-step{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;gap:14px;align-items:flex-start}
+.pay-step-num{width:32px;height:32px;border-radius:50%;background:var(--green-bg);border:1px solid var(--border-green);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--green-light);flex-shrink:0;margin-top:2px}
+.pay-step-body h4{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px}
+.pay-step-body p{font-size:12px;color:var(--muted);line-height:1.5}
+.bank-detail{background:var(--surface2);border:1px solid var(--border-green);border-radius:12px;padding:12px 14px;margin-top:8px;display:flex;align-items:center;justify-content:space-between}
+.bank-acct{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--green-light);letter-spacing:1px}
+.bank-copy{background:var(--green-bg);border:1px solid var(--border-green);color:var(--green-light);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;cursor:pointer}
+.upload-zone{background:var(--surface2);border:2px dashed var(--border-green);border-radius:16px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;margin-top:10px}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--green-light);background:var(--green-bg)}
+.upload-zone-icon{font-size:32px;margin-bottom:8px}
+.upload-zone-text{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+.upload-zone-sub{font-size:11px;color:var(--muted)}
+.upload-preview{margin-top:12px;background:var(--green-bg);border:1px solid var(--border-green);border-radius:10px;padding:10px 14px;display:none;align-items:center;gap:10px}
+.upload-preview-name{flex:1;font-size:12px;color:var(--green-light);font-family:'Syne',sans-serif;font-weight:700}
+.upload-remove{color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px}
+.pending-card{margin:16px;background:var(--surface);border:1px solid rgba(249,168,37,.25);border-radius:20px;padding:28px 20px;text-align:center}
+.pending-icon{font-size:44px;display:block;margin-bottom:12px}
+.pending-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--gold-light);margin-bottom:10px}
+.pending-text{font-size:13px;color:var(--muted);line-height:1.7}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.spinner{width:32px;height:32px;border:3px solid var(--surface3);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+
+/* PROFILE & MENU */
+.profile-hero{margin:0 16px 16px;background:var(--surface);border:1px solid var(--border-green);border-radius:24px;padding:24px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden}
+.profile-hero::before{content:'';position:absolute;right:-40px;top:-40px;width:140px;height:140px;background:radial-gradient(circle,rgba(46,125,50,.2) 0%,transparent 70%);pointer-events:none}
+.profile-avatar-big{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-dim));color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:2px solid var(--border-green)}
+.profile-name-big{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:3px}
+.profile-dept{font-size:12px;color:var(--muted);line-height:1.4;margin-bottom:8px}
+.menu-list{margin:0 16px 20px;display:flex;flex-direction:column;gap:2px;border-radius:16px;overflow:hidden;border:1px solid var(--border)}
+.menu-item{display:flex;align-items:center;gap:14px;background:var(--surface);padding:14px 16px;cursor:pointer;transition:background .2s}
+.menu-item:active{background:var(--surface2)}
+.menu-item-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.menu-item-label{flex:1;font-size:13px;font-weight:500}
+.menu-item-arrow{color:var(--muted2);font-size:14px}
+
+/* NEWS */
+.news-list{display:flex;flex-direction:column;gap:8px;padding:0 16px 8px}
+.news-item{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:background .2s}
+.news-item:active{background:var(--surface2)}
+.news-tag{display:inline-block;font-family:'Syne',sans-serif;font-size:9px;font-weight:800;letter-spacing:.8px;padding:3px 10px;border-radius:100px;margin-bottom:8px;text-transform:uppercase}
+.tag-urgent{background:rgba(229,57,53,.12);color:#EF5350;border:1px solid rgba(229,57,53,.3)}
+.tag-academic{background:var(--blue-bg,rgba(21,101,192,0.12));color:var(--blue-light);border:1px solid rgba(21,101,192,.3)}
+.tag-event{background:rgba(46,125,50,.1);color:var(--green-light);border:1px solid var(--border-green)}
+.tag-general{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.news-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:6px;line-height:1.3}
+.news-preview{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:8px}
+.news-date{font-size:11px;color:var(--muted2)}
+
+/* CALENDAR */
+.cal-list{margin:0 16px 8px;display:flex;flex-direction:column;gap:10px}
+.cal-item{display:flex;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;cursor:pointer}
+.cal-date{flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;width:44px;background:var(--surface2);border-radius:10px;padding:8px 4px}
+.cal-month{font-family:'Syne',sans-serif;font-size:9px;font-weight:800;color:var(--green-light);letter-spacing:1px}
+.cal-day{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text)}
+.cal-info h4{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px}
+.cal-info p{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:6px}
+.cal-badge{display:inline-block;font-size:9px;font-weight:800;padding:2px 8px;border-radius:100px;font-family:'Syne',sans-serif;letter-spacing:.5px}
+.cal-reg{background:var(--green-bg);color:var(--green-light);border:1px solid var(--border-green)}
+.cal-exam{background:rgba(229,57,53,.1);color:#EF5350;border:1px solid rgba(229,57,53,.3)}
+.cal-event{background:rgba(249,168,37,.1);color:var(--gold);border:1px solid rgba(249,168,37,.25)}
+
+/* GPA */
+.gpa-card{margin:0 16px 20px;background:var(--surface);border:1px solid var(--border-green);border-radius:24px;padding:24px}
+.gpa-result{text-align:center;margin-bottom:24px}
+.gpa-number{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--green-light);line-height:1}
+.gpa-label{font-size:12px;color:var(--muted);margin-top:4px}
+.grade-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:8px}
+.grade-course{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;width:100%}
+.grade-select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 8px;border-radius:10px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;width:90px}
+.grade-credit{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 8px;border-radius:10px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;width:60px;text-align:center}
+.gpa-actions{display:flex;gap:8px;margin-top:16px}
+.gpa-btn{flex:1;background:var(--green-bg);border:1px solid var(--border-green);color:var(--green-light);font-family:'Syne',sans-serif;font-weight:700;font-size:12px;padding:11px;border-radius:10px;cursor:pointer;transition:all .2s}
+.gpa-btn:active{background:var(--green-mid)}
+
+/* FORUM */
+.forum-list{display:flex;flex-direction:column;gap:8px;padding:0 16px 8px}
+.forum-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px}
+.forum-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.forum-avatar{width:34px;height:34px;border-radius:50%;background:var(--green-bg);border:1px solid var(--border-green);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.forum-user{font-family:'Syne',sans-serif;font-size:12px;font-weight:700}
+.forum-time{font-size:11px;color:var(--muted)}
+.forum-text{font-size:13px;color:var(--text);line-height:1.5;margin-bottom:10px}
+.forum-stats{display:flex;gap:12px}
+.forum-stat{font-size:12px;color:var(--muted)}
+
+/* COURSE DETAIL */
+.course-detail-hero{margin:0 16px 16px;border-radius:20px;padding:20px;position:relative;overflow:hidden}
+.course-detail-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(46,125,50,.2),rgba(9,14,9,.8));border-radius:20px}
+.course-detail-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;position:relative;z-index:1}
+.course-detail-meta{font-size:12px;color:rgba(255,255,255,.6);position:relative;z-index:1;margin-top:4px}
+.tabs{display:flex;gap:2px;padding:0 16px 16px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:8px 18px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;cursor:pointer;transition:all .2s;flex-shrink:0}
+.tab-btn.active{background:var(--green-bg);border-color:var(--border-green);color:var(--green-light)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<!-- ====== AUTH SCREEN ====== -->
+<div class="screen" id="screen-auth">
+  <div class="auth-bg"></div><div class="auth-glow"></div>
+  <div class="auth-inner">
+    <div class="auth-logo">AMBO <span class="fresh">FRESH</span></div>
+    <div class="auth-uni">AMBO UNIVERSITY</div>
+    <div class="auth-campus-tag" id="authCampusTag">● Hachalu Hundessa Campus</div>
+    <div class="auth-tagline" id="authTagline">Your academic success hub. Study smarter, score higher.</div>
+    <div class="auth-badge"><div class="pulse-dot"></div><span id="authLiveTag">Students online now</span></div>
+    <div class="auth-card">
+      <div class="auth-toggle">
+        <button class="auth-toggle-btn active" id="tab-login" onclick="switchAuthTab('login')">Sign In</button>
+        <button class="auth-toggle-btn" id="tab-register" onclick="switchAuthTab('register')">Register</button>
+      </div>
+      <!-- LOGIN -->
+      <div id="login-form">
+        <div class="form-group"><label>Phone Number</label><input type="tel" id="loginPhone" placeholder="e.g. 0911234567" inputmode="numeric"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="loginPw" placeholder="Your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="auth-btn" onclick="doLogin()">🚀 Sign In</button>
+      </div>
+      <!-- REGISTER -->
+      <div id="register-form" style="display:none">
+        <div class="form-group"><label>Full Name</label><input type="text" id="regName" placeholder="Your full name"></div>
+        <div class="form-group"><label>Phone Number</label><input type="tel" id="regPhone" placeholder="e.g. 0911234567" inputmode="numeric"></div>
+        <div class="form-group"><label>Stream</label>
+          <select id="regStream">
+            <option value="">Select your stream</option>
+            <option value="pre-eng">Pre-Engineering</option>
+            <option value="nat-sci">Natural Science</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Create Password</label><input type="password" id="regPw" placeholder="Min 6 characters"></div>
+        <button class="auth-btn" onclick="doRegister()">✨ Create Account</button>
+        <div class="welcome-pill">🎓 Join 2,000+ students already learning</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== HOME SCREEN ====== -->
+<div class="screen hidden" id="screen-home">
+  <div class="screen-content">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="top-bar">
+      <div class="top-bar-logo">AMBO <span class="fresh">FRESH</span></div>
+      <button class="avatar-btn" id="homeAvatar" onclick="goTo('profile')">A</button>
+    </div>
+    <!-- ANNOUNCEMENT from admin -->
+    <div class="announcement-card" id="homeBannerCard" style="display:none">
+      <div class="announcement-icon">📢</div>
+      <div class="announcement-body"><h4 id="homeBannerTitle">Campus Update</h4><p id="homeBannerText"></p></div>
+    </div>
+    <div class="hero-banner">
+      <div class="hero-welcome">WELCOME BACK</div>
+      <div class="hero-name" id="heroName">Student 👋</div>
+      <div class="hero-sub" id="heroCampus">Hachalu Hundessa Campus · Year 1</div>
+      <div id="heroStatus"><span class="free-status">🔓 Free Access</span></div>
+    </div>
+    <div class="quick-actions">
+      <div class="qa-btn" onclick="goTo('courses')"><div class="qa-icon">📚</div><div class="qa-label">Courses</div></div>
+      <div class="qa-btn" onclick="goTo('library')"><div class="qa-icon">📖</div><div class="qa-label">Library</div></div>
+      <div class="qa-btn" onclick="goTo('gpa')"><div class="qa-icon">🎯</div><div class="qa-label">GPA Calc</div></div>
+      <div class="qa-btn" onclick="goTo('calendar')"><div class="qa-icon">📅</div><div class="qa-label">Calendar</div></div>
+    </div>
+    <div class="section-hd"><h3>📚 Your Courses</h3><a onclick="goTo('courses')">See all →</a></div>
+    <div class="course-list" id="homeCourseList"></div>
+    <div class="section-hd" style="margin-top:8px"><h3>📰 Latest News</h3><a onclick="goTo('news')">See all →</a></div>
+    <div id="homeNewsList" style="padding:0 16px 8px;display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div>
+
+<!-- ====== COURSES SCREEN ====== -->
+<div class="screen hidden" id="screen-courses">
+  <div class="screen-content">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="top-bar"><div class="top-bar-title">My Courses</div><button class="avatar-btn" id="coursesAvatar" onclick="goTo('profile')">A</button></div>
+    <div class="course-list" id="fullCourseList" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- ====== LIBRARY SCREEN ====== -->
+<div class="screen hidden" id="screen-library">
+  <div class="screen-content">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="top-bar"><button class="top-bar-back" onclick="goTo('home')">←</button><div class="top-bar-title">Resource Library</div><div style="width:36px"></div></div>
+    <div class="library-filters" id="libraryFilters">
+      <div class="filter-pill active" onclick="filterLibrary('all',this)">All</div>
+      <div class="filter-pill" onclick="filterLibrary('pdf',this)">📄 PDFs</div>
+      <div class="filter-pill" onclick="filterLibrary('video',this)">🎬 Videos</div>
+      <div class="filter-pill" onclick="filterLibrary('note',this)">📝 Notes</div>
+      <div class="filter-pill" onclick="filterLibrary('exam',this)">🧪 Exams</div>
+    </div>
+    <div id="libraryList" class="doc-list"></div>
+  </div>
+</div>
+
+<!-- ====== COURSE DETAIL ====== -->
+<div class="screen hidden" id="screen-coursedetail">
+  <div class="screen-content">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="top-bar"><button class="top-bar-back" onclick="goTo('courses')">←</button><div class="top-bar-title" id="cdTitle">Course</div><div style="width:36px"></div></div>
+    <div class="course-detail-hero" id="cdHero">
+      <div class="course-detail-title" id="cdHeroTitle"></div>
+      <div class="course-detail-meta" id="cdHeroMeta"></div>
+    </div>
+    <div class="tabs">
+      <div class="tab-btn active" onclick="switchTab('chapters',this)">Chapters</div>
+      <div class="tab-btn" onclick="switchTab('materials',this)">Materials</div>
+      <div class="tab-btn" onclick="switchTab('pastpapers',this)">Past Papers</div>
+    </div>
+    <div class="tab-panel active" id="tab-chapters"><div class="chapter-list" id="chapterList"></div></div>
+    <div class="tab-panel" id="tab-materials"><div class="doc-list" id="materialsList"></div></div>
+    <div class="tab-panel" id="tab-pastpapers"><div class="doc-list" id="pastPapersList"></div></div>
+  </div>
+</div>
+
+<!-- ====== COMMUNITY ====== -->
+<div class="screen hidden" id="screen-community">
+  <div class="screen-content">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="top-bar"><div class="top-bar-title">Community</div><button class="avatar-btn" onclick="goTo('profile')">A</button></div>
+    <div style="margin:0 16px 16px;display:flex;gap:10px">
+      <button style="flex:1;background:var(--green-bg);border:1px solid var(--border-green);color:var(--green-light);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;padding:12px;border-radius:12px;cursor:pointer">💬 Forum</button>
+      <button onclick="showToast('Study groups coming soon...')" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;padding:12px;border-radius:12px;cursor:pointer">👥 Study Groups</button>
+    </div>
+    <div class="section-hd"><h3>💬 Discussion Forum</h3><a onclick="showToast('Opening post editor...')">+ Post</a></div>
+    <div class="forum-list">
+      <div class="forum-card"><div class="forum-header"><div class="forum-avatar">👨‍💻</div><div class="forum-meta"><div class="forum-user">Kebede M. · Pre-Engineering</div><div class="forum-time">2 hours ago</div></div></div><div class="forum-text">Does anyone have C++ Chapter 4 lab solutions? Pointer exercises are confusing me 😅</div><div class="forum-stats"><div class="forum-stat">💬 14 replies</div><div class="forum-stat">❤️ 37 likes</div></div></div>
+      <div class="forum-card"><div class="forum-header"><div class="forum-avatar">👩‍🔬</div><div class="forum-meta"><div class="forum-user">Tigist A. · Natural Science</div><div class="forum-time">5 hours ago</div></div></div><div class="forum-text">Looking for study partner for Applied Maths Ch.3 (Differential Equations). Free Tuesdays after 2PM. DM me!</div><div class="forum-stats"><div class="forum-stat">💬 8 replies</div><div class="forum-stat">❤️ 21 likes</div></div></div>
+      <div class="forum-card"><div class="forum-header"><div class="forum-avatar">👨‍🎓</div><div class="forum-meta"><div class="forum-user">Solomon T. · Pre-Engineering</div><div class="forum-time">1 day ago</div></div></div><div class="forum-text">Is the Emerging Tech exam multiple choice or written? The professor wasn't clear...</div><div class="forum-stats"><div class="forum-stat">💬 19 replies</div><div class="forum-stat">❤️ 44 likes</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== NEWS SCREEN ====== -->
+<div class="screen hidden" id="screen-news">
+  <div class="screen-content">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="top-bar"><button class="top-bar-back" onclick="goTo('home')">←</button><div class="top-bar-title">News & Updates</div><div style="width:36px"></div></div>
+    <div style="margin:0 16px 6px;display:flex;align-items:center;gap:8px"><div class="pulse-dot"></div><span style="font-size:12px;color:var(--green-light);font-weight:600">Live — Hachalu Hundessa Campus</span></div>
+    <div class="news-list" id="newsList" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- ====== CALENDAR ====== -->
+<div class="screen hidden" id="screen-calendar">
+  <div class="screen-content">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="top-bar"><button class="top-bar-back" onclick="goTo('home')">←</button><div class="top-bar-title">Academic Calendar</div><div style="width:36px"></div></div>
+    <div class="cal-list">
+      <div class="cal-item"><div class="cal-date"><div class="cal-month">JUN</div><div class="cal-day">15</div></div><div class="cal-info"><h4>Freshman Registration Opens</h4><p>All first-year Pre-Engineering & Natural Science students register at the Registrar's Office.</p><span class="cal-badge cal-reg">Registration</span></div></div>
+      <div class="cal-item"><div class="cal-date"><div class="cal-month">JUN</div><div class="cal-day">28</div></div><div class="cal-info"><h4>C++ Lab Assignment Deadline</h4><p>Chapter 5 lab submissions due via the ICT department portal.</p><span class="cal-badge cal-exam">Deadline</span></div></div>
+      <div class="cal-item"><div class="cal-date"><div class="cal-month">JUL</div><div class="cal-day">15</div></div><div class="cal-info"><h4>Final Examinations Begin</h4><p>Final exams commence for all departments.</p><span class="cal-badge cal-exam">Exams</span></div></div>
+      <div class="cal-item"><div class="cal-date"><div class="cal-month">JUL</div><div class="cal-day">28</div></div><div class="cal-info"><h4>Final Examinations End</h4><p>Last day of final exams for Semester 1, 2024/25.</p><span class="cal-badge cal-exam">Exams</span></div></div>
+      <div class="cal-item"><div class="cal-date"><div class="cal-month">AUG</div><div class="cal-day">10</div></div><div class="cal-info"><h4>Semester Results Released</h4><p>Semester 1 final grades available online and on notice boards.</p><span class="cal-badge cal-reg">Results</span></div></div>
+      <div class="cal-item"><div class="cal-date"><div class="cal-month">SEP</div><div class="cal-day">01</div></div><div class="cal-info"><h4>Semester 2 Begins</h4><p>Second semester classes commence. Registration opens August 25th.</p><span class="cal-badge cal-event">New Semester</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== GPA ====== -->
+<div class="screen hidden" id="screen-gpa">
+  <div class="screen-content">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="top-bar"><button class="top-bar-back" onclick="goTo('home')">←</button><div class="top-bar-title">GPA Calculator</div><div style="width:36px"></div></div>
+    <div class="gpa-card">
+      <div class="gpa-result"><div class="gpa-number" id="gpaResult">0.00</div><div class="gpa-label">Cumulative GPA (4.0 Scale)</div></div>
+      <div id="gradeRows">
+        <div class="grade-row"><input class="grade-course" placeholder="Course name" oninput="calcGPA()"><select class="grade-select" onchange="calcGPA()"><option value="">Grade</option><option value="4.0">A (4.0)</option><option value="3.75">A- (3.75)</option><option value="3.5">B+ (3.5)</option><option value="3.0">B (3.0)</option><option value="2.75">B- (2.75)</option><option value="2.5">C+ (2.5)</option><option value="2.0">C (2.0)</option><option value="1.75">C- (1.75)</option><option value="1.0">D (1.0)</option><option value="0">F (0.0)</option></select><input class="grade-credit" type="number" placeholder="Cr" min="1" max="6" value="3" oninput="calcGPA()"></div>
+      </div>
+      <div class="gpa-actions">
+        <button class="gpa-btn" onclick="addGradeRow()">+ Add Course</button>
+        <button class="gpa-btn" onclick="resetGPA()" style="background:rgba(229,57,53,.1);border-color:rgba(229,57,53,.3);color:#EF5350">Reset</button>
+      </div>
+    </div>
+    <div style="margin:0 16px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px">
+      <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text)">📊 Grade Scale Reference</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted)">
+        <div>A = 4.00</div><div>A- = 3.75</div>
+        <div>B+ = 3.50</div><div>B = 3.00</div>
+        <div>B- = 2.75</div><div>C+ = 2.50</div>
+        <div>C = 2.00</div><div>C- = 1.75</div>
+        <div>D = 1.00</div><div>F = 0.00</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== PREMIUM ====== -->
+<div class="screen hidden" id="screen-premium">
+  <div class="screen-content">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="top-bar"><button class="top-bar-back" onclick="goTo('home')">←</button><div class="top-bar-title">Fresh Premium</div><div style="width:36px"></div></div>
+    <div id="premiumPendingBlock" style="display:none">
+      <div class="pending-card"><div class="spinner"></div><span class="pending-icon">⏳</span><div class="pending-title">Payment Under Review</div><div class="pending-text">Your payment screenshot has been submitted. Please wait while the Admin confirms your transaction.<br><br><strong style="color:var(--gold)">Access will be granted shortly.</strong><br><br>Contact support if not verified within 24 hours.</div></div>
+      <div class="menu-list" style="margin-top:8px"><div class="menu-item" id="telegramSupportBtn" onclick="showToast('Opening Telegram...')"><div class="menu-item-icon" style="background:rgba(0,136,204,.1)">✈️</div><div class="menu-item-label">Contact Support on Telegram</div><div class="menu-item-arrow">›</div></div></div>
+    </div>
+    <div id="premiumOfferBlock">
+      <div class="premium-hero">
+        <span class="premium-crown">👑</span>
+        <div class="premium-title">AMBO FRESH PREMIUM</div>
+        <div class="premium-subtitle">Unlock organized notes, expert videos, full past exam archives & mock tests for every course.</div>
+        <div class="premium-price" id="premiumPriceDisplay">89 ETB</div>
+        <div class="premium-price-sub" id="premiumDiscountLabel">One-time payment · Hachalu Hundessa Campus</div>
+        <button onclick="goTo('payment')" style="width:100%;background:var(--gold);color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;border:none;padding:16px;border-radius:12px;cursor:pointer;margin-top:4px">💳 Pay via CBE Bank Transfer →</button>
+        <div style="margin-top:8px;font-size:11px;color:var(--muted)">Secure · Manual verification · No auto-charge</div>
+      </div>
+      <div class="section-hd"><h3>✨ What You Unlock</h3></div>
+      <div class="feature-list">
+        <div class="feature-item"><div class="feature-icon" style="background:rgba(21,101,192,.12)">🎬</div><div class="feature-info"><div class="feature-title">Full Video Lectures — All 8 Courses</div><div class="feature-desc">HD tutorials for C++, Maths, Physics, English & more</div></div><div class="feature-check">✓</div></div>
+        <div class="feature-item"><div class="feature-icon" style="background:rgba(249,168,37,.1)">🧪</div><div class="feature-info"><div class="feature-title">Interactive Mock Exams</div><div class="feature-desc">500+ timed questions with instant results & explanations</div></div><div class="feature-check">✓</div></div>
+        <div class="feature-item"><div class="feature-icon" style="background:rgba(229,57,53,.1)">📋</div><div class="feature-info"><div class="feature-title">Full Past Exam Archive (2015–2024)</div><div class="feature-desc">National & university exams with complete answer keys</div></div><div class="feature-check">✓</div></div>
+        <div class="feature-item"><div class="feature-icon" style="background:var(--green-bg)">📖</div><div class="feature-info"><div class="feature-title">Downloadable Chapter Summaries</div><div class="feature-desc">Condensed study guides for every chapter, all courses</div></div><div class="feature-check">✓</div></div>
+      </div>
+      <div style="margin:0 16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px">
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:10px">💬 Student Reviews</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:8px">"The C++ video course helped me score A in my first programming lab. 89 ETB is nothing for what you get!" — <strong style="color:var(--green-light)">Dawit M., Pre-Engineering</strong></div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6">"Past papers + mock tests = I passed Applied Maths with distinction on my first attempt." — <strong style="color:var(--green-light)">Tigist A., Natural Science</strong></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== PAYMENT ====== -->
+<div class="screen hidden" id="screen-payment">
+  <div class="screen-content">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="top-bar"><button class="top-bar-back" onclick="goTo('premium')">←</button><div class="top-bar-title">Complete Payment</div><div style="width:36px"></div></div>
+    <div style="margin:0 16px 20px;background:rgba(249,168,37,.07);border:1px solid rgba(249,168,37,.25);border-radius:16px;padding:16px;text-align:center">
+      <div style="font-size:28px;margin-bottom:8px">💳</div>
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--gold-light);margin-bottom:4px">3 Simple Steps</div>
+      <div style="font-size:12px;color:var(--muted)">Transfer → Screenshot → Submit</div>
+    </div>
+    <div class="payment-steps">
+      <div class="pay-step">
+        <div class="pay-step-num">1</div>
+        <div class="pay-step-body">
+          <h4>Transfer <span id="payAmountLabel">89 ETB</span> via CBE</h4>
+          <p>Send exactly <strong style="color:var(--gold)" id="payAmountLabel2">89 ETB</strong> to the account below using Commercial Bank of Ethiopia.</p>
+          <div class="bank-detail">
+            <div>
+              <div style="font-size:10px;color:var(--muted);margin-bottom:2px">CBE ACCOUNT NUMBER</div>
+              <div class="bank-acct" id="payAcctNumber">1000406065719</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px" id="payAcctHolder">Account Name: Giduma Hinsermu</div>
+            </div>
+            <button class="bank-copy" onclick="copyAcct()">📋 Copy</button>
+          </div>
+        </div>
+      </div>
+      <div class="pay-step">
+        <div class="pay-step-num">2</div>
+        <div class="pay-step-body"><h4>Take a Screenshot of Your Receipt</h4><p>After the transfer, take a clear screenshot showing the amount, date, and reference number.</p></div>
+      </div>
+      <div class="pay-step">
+        <div class="pay-step-num">3</div>
+        <div class="pay-step-body">
+          <h4>Upload Your Screenshot Here</h4>
+          <p>Upload your receipt so our admin can verify and activate your Premium access.</p>
+          <div class="upload-zone" id="uploadZone" onclick="triggerUpload()">
+            <div class="upload-zone-icon">📸</div>
+            <div class="upload-zone-text">Tap to upload receipt screenshot</div>
+            <div class="upload-zone-sub">JPG, PNG — Max 10MB</div>
+          </div>
+          <div class="upload-preview" id="uploadPreview">
+            <span style="font-size:20px">🖼️</span>
+            <div class="upload-preview-name" id="uploadFileName">receipt.jpg</div>
+            <span class="upload-remove" onclick="removeUpload()">✕</span>
+          </div>
+          <input type="file" id="receiptFile" accept="image/*" style="display:none" onchange="handleUpload(this)">
+        </div>
+      </div>
+    </div>
+    <div style="padding:0 16px 20px">
+      <button id="submitPayBtn" onclick="submitPayment()" style="width:100%;background:var(--green);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;border:none;padding:16px;border-radius:12px;cursor:pointer;opacity:.5" disabled>✅ Submit for Verification</button>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--muted)">Your name & phone number will be sent with submission</div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== PROFILE ====== -->
+<div class="screen hidden" id="screen-profile">
+  <div class="screen-content">
+    <div class="status-bar"><span class="status-time">9:41</span><div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="top-bar"><button class="top-bar-back" onclick="goTo('home')">←</button><div class="top-bar-title">My Profile</div><div style="width:36px"></div></div>
+    <div class="profile-hero">
+      <div class="profile-avatar-big" id="profileAvatarBig">A</div>
+      <div>
+        <div class="profile-name-big" id="profileName">Student Name</div>
+        <div class="profile-dept" id="profileDept">Pre-Engineering · Year 1</div>
+        <div id="profilePremiumStatus"><span class="free-status">🔓 Free Access</span></div>
+      </div>
+    </div>
+    <div class="section-hd"><h3>⚙️ Account</h3></div>
+    <div class="menu-list">
+      <div class="menu-item" onclick="goTo('premium')"><div class="menu-item-icon" style="background:rgba(249,168,37,.1)">👑</div><div class="menu-item-label">Upgrade to Premium</div><div class="menu-item-arrow">›</div></div>
+      <div class="menu-item" onclick="goTo('gpa')"><div class="menu-item-icon" style="background:var(--green-bg)">🎯</div><div class="menu-item-label">GPA Calculator</div><div class="menu-item-arrow">›</div></div>
+      <div class="menu-item" onclick="goTo('calendar')"><div class="menu-item-icon" style="background:rgba(21,101,192,.12)">📅</div><div class="menu-item-label">Academic Calendar</div><div class="menu-item-arrow">›</div></div>
+    </div>
+    <div class="section-hd"><h3>📞 Support</h3></div>
+    <div class="menu-list">
+      <div class="menu-item" id="tgSupportMenuBtn" onclick="showToast('Opening Telegram support...')"><div class="menu-item-icon" style="background:rgba(0,136,204,.1)">✈️</div><div class="menu-item-label" id="tgSupportMenuLabel">Contact Support on Telegram</div><div class="menu-item-arrow">›</div></div>
+      <div class="menu-item" id="tgNewsMenuBtn" onclick="showToast('Opening news channel...')"><div class="menu-item-icon" style="background:rgba(0,136,204,.1)">📢</div><div class="menu-item-label" id="tgNewsMenuLabel">Campus News Channel</div><div class="menu-item-arrow">›</div></div>
+    </div>
+    <div style="padding:0 16px 24px">
+      <button onclick="doLogout()" style="width:100%;background:rgba(229,57,53,.08);border:1px solid rgba(229,57,53,.2);color:#EF5350;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;padding:14px;border-radius:12px;cursor:pointer">🚪 Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== BOTTOM NAV ====== -->
+<div id="bottom-nav">
+  <button class="nav-item active" id="nav-home" onclick="goTo('home')"><div class="nav-icon-wrap"><span class="nav-icon">🏠</span></div><span class="nav-label">Home</span></button>
+  <button class="nav-item" id="nav-courses" onclick="goTo('courses')"><div class="nav-icon-wrap"><span class="nav-icon">📚</span></div><span class="nav-label">Courses</span></button>
+  <button class="nav-item" id="nav-community" onclick="goTo('community')"><div class="nav-icon-wrap"><span class="nav-icon">💬</span><div class="nav-dot" id="communityDot" style="display:none"></div></div><span class="nav-label">Community</span></button>
+  <button class="nav-item" id="nav-news" onclick="goTo('news')"><div class="nav-icon-wrap"><span class="nav-icon">📰</span><div class="nav-dot" id="newsDot"></div></div><span class="nav-label">News</span></button>
+  <button class="nav-item" id="nav-profile" onclick="goTo('profile')"><div class="nav-icon-wrap"><span class="nav-icon">👤</span></div><span class="nav-label">Profile</span></button>
+</div>
+
+<!-- ====== TOAST ====== -->
+<div id="toast"></div>
+
+<!-- ====== CONTENT VIEWER OVERLAY ====== -->
+<div id="viewer-overlay">
+  <div class="viewer-topbar">
+    <button class="viewer-close" onclick="closeViewer()">✕</button>
+    <div class="viewer-title-text" id="viewerTitle">Document</div>
+    <div style="width:34px"></div>
+  </div>
+  <div class="viewer-body" id="viewerBody"></div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ============================================================
+// SHARED LOCALSTORAGE KEYS (same as admin panel)
+// ============================================================
+const LS_USERS     = 'amboUsers';
+const LS_SETTINGS  = 'amboSettings';
+const LS_SUBJECTS  = 'amboSubjects';
+const LS_CHAPTERS  = 'amboChapters';
+const LS_MATERIALS = 'amboMaterials';  // {id,subjectId,type,title,url,isPremium}
+const LS_VIDEOS    = 'amboVideos';
+const LS_EXAMS     = 'amboExams';
+const LS_NEWS      = 'amboNews';
+const LS_TELEGRAM  = 'amboTelegram';
+const LS_TXNS      = 'adminTransactions';
+
+// ============================================================
+// HELPERS
+// ============================================================
+function ls(key,def=[]){try{return JSON.parse(localStorage.getItem(key))||def}catch{return def}}
+function getSettings(){return ls(LS_SETTINGS,{})}
+
+let userData=null;
+let currentScreen='auth';
+let currentCourseId=null;
+let currentTabId='chapters';
+
+// ============================================================
+// TIME
+// ============================================================
+function updateTime(){
+  const n=new Date();
+  const t=`${n.getHours().toString().padStart(2,'0')}:${n.getMinutes().toString().padStart(2,'0')}`;
+  document.querySelectorAll('.status-time').forEach(el=>el.textContent=t);
+}
+updateTime();setInterval(updateTime,30000);
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+const NAV_IDS=['home','courses','community','news','profile'];
+function goTo(screen){
+  const prev=document.getElementById('screen-'+currentScreen);
+  const next=document.getElementById('screen-'+screen);
+  if(!next)return;
+  if(prev){prev.classList.remove('hidden');prev.classList.add('out-left');setTimeout(()=>{if(prev){prev.classList.add('hidden');prev.classList.remove('out-left')}},300)}
+  next.classList.remove('hidden','out-left');
+  currentScreen=screen;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const navEl=document.getElementById('nav-'+screen);
+  if(navEl)navEl.classList.add('active');
+  const noNav=['auth','payment','premium','coursedetail','library','gpa','calendar','news'];
+  document.getElementById('bottom-nav').classList.toggle('visible',!noNav.includes(screen)&&!!userData);
+  // Render dynamic content
+  if(screen==='home')renderHome();
+  if(screen==='courses')renderCourses();
+  if(screen==='library')renderLibrary();
+  if(screen==='news')renderNews();
+  if(screen==='premium')renderPremium();
+  if(screen==='payment')renderPayment();
+  if(screen==='profile')renderProfile();
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+function switchAuthTab(tab){
+  document.getElementById('tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('tab-register').classList.toggle('active',tab==='register');
+  document.getElementById('login-form').style.display=tab==='login'?'':'none';
+  document.getElementById('register-form').style.display=tab==='register'?'':'none';
+}
+
+function doLogin(){
+  const phone=document.getElementById('loginPhone').value.trim();
+  const pw=document.getElementById('loginPw').value;
+  if(!phone||!pw){showToast('Please fill in all fields');return}
+  const users=ls(LS_USERS);
+  const user=users.find(u=>u.phone===phone&&u.pw===pw);
+  if(user){userData=user;enterApp()}
+  else showToast('❌ Invalid credentials. Try registering first.');
+}
+
+function doRegister(){
+  const name=document.getElementById('regName').value.trim();
+  const phone=document.getElementById('regPhone').value.trim();
+  const stream=document.getElementById('regStream').value;
+  const pw=document.getElementById('regPw').value;
+  if(!name||!phone||!stream||!pw){showToast('Please fill in all fields');return}
+  if(pw.length<6){showToast('Password must be at least 6 characters');return}
+  const users=ls(LS_USERS);
+  if(users.find(u=>u.phone===phone)){showToast('❌ Phone already registered. Please sign in.');return}
+  const newUser={name,phone,stream,pw,premium:false,pending:false,joinDate:new Date().toISOString()};
+  users.push(newUser);
+  localStorage.setItem(LS_USERS,JSON.stringify(users));
+  userData=newUser;
+  enterApp();
+}
+
+function enterApp(){
+  const s=getSettings();
+  // Apply settings from admin
+  const initials=(userData.name||'A')[0].toUpperCase();
+  document.getElementById('homeAvatar').textContent=initials;
+  document.getElementById('profileAvatarBig').textContent=initials;
+  document.getElementById('heroName').textContent=userData.name.split(' ')[0]+' 👋';
+  const streamLabel=userData.stream==='pre-eng'?'Pre-Engineering':'Natural Science';
+  const campus=s.campusName||'Hachalu Hundessa Campus';
+  document.getElementById('heroCampus').textContent=campus+' · '+streamLabel+' · Year 1';
+  document.getElementById('profileName').textContent=userData.name;
+  document.getElementById('profileDept').textContent=streamLabel+' · '+campus+' · Year 1';
+  updateStatusBadges();
+  // Apply motivation if set
+  if(s.motivation){document.getElementById('authTagline').textContent=s.motivation}
+  goTo('home');
+  document.getElementById('bottom-nav').classList.add('visible');
+}
+
+function updateStatusBadges(){
+  const users=ls(LS_USERS);
+  const fresh=users.find(u=>u.phone===userData.phone);
+  if(fresh)userData=fresh;
+  const statusHtml=userData.premium
+    ?'<span class="premium-status">👑 Premium Active</span>'
+    :userData.pending
+    ?'<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(249,168,37,.1);border:1px solid rgba(249,168,37,.3);border-radius:100px;padding:5px 12px;font-size:11px;color:var(--gold);font-weight:700">⏳ Verification Pending</span>'
+    :'<span class="free-status">🔓 Free Access</span>';
+  document.getElementById('heroStatus').innerHTML=statusHtml;
+  document.getElementById('profilePremiumStatus').innerHTML=statusHtml;
+  if(userData.pending&&!userData.premium){
+    document.getElementById('premiumPendingBlock').style.display='';
+    document.getElementById('premiumOfferBlock').style.display='none';
+  }else{
+    document.getElementById('premiumPendingBlock').style.display='none';
+    document.getElementById('premiumOfferBlock').style.display='';
+  }
+}
+
+function doLogout(){
+  userData=null;
+  document.getElementById('bottom-nav').classList.remove('visible');
+  goTo('auth');
+}
+
+const isPremium=()=>userData&&userData.premium;
+
+// ============================================================
+// DEFAULT SUBJECTS (fallback if admin hasn't set any)
+// ============================================================
+const DEFAULT_SUBJECTS=[
+  {id:'cpp',    name:'C++ Programming',     icon:'💻',color:'rgba(123,31,162,.08)',border:'rgba(123,31,162,.3)'},
+  {id:'math',   name:'Applied Mathematics', icon:'📐',color:'rgba(0,188,212,.08)', border:'rgba(0,188,212,.3)'},
+  {id:'physics',name:'Physics',             icon:'⚛️', color:'rgba(21,101,192,.08)',border:'rgba(21,101,192,.3)'},
+  {id:'english',name:'English',             icon:'📝',color:'rgba(255,87,34,.08)', border:'rgba(255,87,34,.3)'},
+  {id:'emerging',name:'Emerging Technologies',icon:'🤖',color:'rgba(0,188,212,.08)',border:'rgba(0,188,212,.3)'},
+  {id:'civics', name:'Civics & Ethics',      icon:'⚖️', color:'rgba(46,125,50,.08)', border:'rgba(46,125,50,.3)'},
+  {id:'anthro', name:'Anthropology',         icon:'🌍',color:'rgba(255,87,34,.08)', border:'rgba(255,87,34,.3)'},
+  {id:'entre',  name:'Entrepreneurship',     icon:'💼',color:'rgba(76,175,80,.08)', border:'rgba(76,175,80,.3)'},
+];
+
+function getSubjects(){
+  const saved=ls(LS_SUBJECTS);
+  return saved.length>0?saved:DEFAULT_SUBJECTS;
+}
+
+const DEFAULT_CHAPTERS={
+  cpp:['Intro to C++','Variables & Data Types','Control Flow','Functions','Arrays & Strings','Pointers','OOP Basics','File I/O'],
+  math:['Limits & Continuity','Derivatives','Applications of Derivatives','Integrals','Integration Techniques','Differential Equations','Matrices','Vectors'],
+  physics:['Mechanics Basics','Newton\'s Laws','Work & Energy','Momentum','Waves & Oscillations','Thermodynamics','Electrostatics','Magnetism'],
+  english:['Grammar Fundamentals','Writing Skills','Reading Comprehension','Listening & Speaking','Academic Writing','Vocabulary','Presentation Skills','Research Writing'],
+  emerging:['What is Emerging Tech?','Artificial Intelligence','Internet of Things','Blockchain Basics','Cloud Computing','Cybersecurity Essentials','AR/VR','Tech in Ethiopia'],
+  civics:['Foundations of Civics','Constitution & Rights','Government Structures','Democratic Processes','Ethics & Morality','Human Rights','Environmental Ethics','Ethiopian Governance'],
+  anthro:['What is Anthropology?','Human Evolution','Cultural Anthropology','Social Structures','Language & Culture','Religion & Belief','Economic Anthropology','Ethiopian Cultural Studies'],
+  entre:['Entrepreneur Mindset','Opportunity Recognition','Business Model Canvas','Market Research','Financial Basics','Marketing Strategies','Legal & Ethics','Startup Case Studies'],
+};
+
+function getChaptersForSubject(subjectId){
+  const saved=ls(LS_CHAPTERS).filter(c=>c.subjectId===subjectId);
+  if(saved.length>0)return saved.map(c=>c.title||c.name);
+  return DEFAULT_CHAPTERS[subjectId]||[];
+}
+
+function getMaterialsForSubject(subjectId){
+  return ls(LS_MATERIALS).filter(m=>m.subjectId===subjectId||m.subject===subjectId);
+}
+
+function getVideosForSubject(subjectId){
+  return ls(LS_VIDEOS).filter(v=>v.subjectId===subjectId||v.subject===subjectId);
+}
+
+function getExamsForSubject(subjectId){
+  return ls(LS_EXAMS).filter(e=>e.subjectId===subjectId||e.subject===subjectId);
+}
+
+// ============================================================
+// RENDER HOME
+// ============================================================
+function renderHome(){
+  updateStatusBadges();
+  const s=getSettings();
+  // Banner
+  if(s.campusBanner&&s.campusBanner.trim()){
+    document.getElementById('homeBannerCard').style.display='flex';
+    document.getElementById('homeBannerTitle').textContent=s.campusName||'Campus Update';
+    document.getElementById('homeBannerText').textContent=s.campusBanner;
+  }else{
+    document.getElementById('homeBannerCard').style.display='none';
+  }
+  // Courses (first 4)
+  const subs=getSubjects().slice(0,4);
+  document.getElementById('homeCourseList').innerHTML=subs.map(s=>
+    `<div class="course-item" onclick="openCourse('${s.id}')">
+      <div class="course-icon" style="background:${s.color};border:1px solid ${s.border}">${s.icon}</div>
+      <div class="course-info"><div class="course-title">${s.name}</div><div class="course-meta">${getChaptersForSubject(s.id).length} chapters · Tap to study</div></div>
+      <div class="course-arrow">›</div>
+    </div>`
+  ).join('');
+  // News (first 3)
+  renderHomeNews();
+}
+
+function renderHomeNews(){
+  const news=ls(LS_NEWS);
+  const container=document.getElementById('homeNewsList');
+  if(news.length===0){
+    container.innerHTML=`
+      <div class="news-item"><span class="news-tag tag-urgent">Urgent</span><div class="news-title">Final Exam Schedule Released</div><div class="news-preview">Exams begin July 15th. Check your department notice board for room assignments.</div><div class="news-date">Today, 10:30 AM · Academic Office</div></div>
+      <div class="news-item"><span class="news-tag tag-academic">Academic</span><div class="news-title">C++ Lab Submission — June 28th Deadline</div><div class="news-preview">All Pre-Engineering students must submit their Chapter 5 lab assignments via the ICT portal.</div><div class="news-date">Yesterday · ICT Department</div></div>`;
+  }else{
+    container.innerHTML=news.slice(0,3).map(n=>
+      `<div class="news-item" onclick="goTo('news')">
+        <span class="news-tag ${tagClass(n.tag||n.type||'general')}">${n.tag||n.type||'General'}</span>
+        <div class="news-title">${n.title}</div>
+        <div class="news-preview">${n.body||n.content||''}</div>
+        <div class="news-date">${n.date||''}</div>
+      </div>`).join('');
+  }
+}
+
+function tagClass(tag){
+  const m={'urgent':'tag-urgent','academic':'tag-academic','event':'tag-event','general':'tag-general'};
+  return m[(tag||'').toLowerCase()]||'tag-general';
+}
+
+// ============================================================
+// RENDER COURSES
+// ============================================================
+function renderCourses(){
+  const subs=getSubjects();
+  document.getElementById('fullCourseList').innerHTML=subs.map(s=>
+    `<div class="course-item" onclick="openCourse('${s.id}')">
+      <div class="course-icon" style="background:${s.color};border:1px solid ${s.border}">${s.icon}</div>
+      <div class="course-info"><div class="course-title">${s.name}</div><div class="course-meta">${getChaptersForSubject(s.id).length} chapters · ${getMaterialsForSubject(s.id).length+getVideosForSubject(s.id).length} materials</div></div>
+      <div class="course-arrow">›</div>
+    </div>`
+  ).join('');
+}
+
+// ============================================================
+// OPEN COURSE DETAIL
+// ============================================================
+function openCourse(subjectId){
+  const subs=getSubjects();
+  const c=subs.find(s=>s.id===subjectId)||{id:subjectId,name:subjectId,icon:'📚',color:'var(--surface2)',border:'var(--border)'};
+  currentCourseId=subjectId;
+  document.getElementById('cdTitle').textContent=c.name;
+  const hero=document.getElementById('cdHero');
+  hero.style.background=`linear-gradient(135deg,${c.color} 0%,var(--surface) 100%)`;
+  hero.style.border=`1px solid ${c.border}`;
+  document.getElementById('cdHeroTitle').textContent=c.icon+' '+c.name;
+  document.getElementById('cdHeroMeta').textContent=getChaptersForSubject(subjectId).length+' chapters · Hachalu Hundessa Campus';
+  switchTab('chapters',null);
+  renderChapters(subjectId);
+  renderMaterials(subjectId);
+  renderPastPapers(subjectId);
+  goTo('coursedetail');
+}
+
+function switchTab(tabId,btn){
+  currentTabId=tabId;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  else document.querySelector(`.tab-btn:nth-child(${tabId==='chapters'?1:tabId==='materials'?2:3})`).classList.add('active');
+  document.getElementById('tab-'+tabId).classList.add('active');
+}
+
+function renderChapters(subjectId){
+  const chapters=getChaptersForSubject(subjectId);
+  const mats=getMaterialsForSubject(subjectId);
+  const vids=getVideosForSubject(subjectId);
+  const html=chapters.map((ch,i)=>{
+    // find materials for this chapter
+    const chMats=mats.filter(m=>(m.chapter===ch||m.chapterIndex===i));
+    const chVids=vids.filter(v=>(v.chapter===ch||v.chapterIndex===i));
+    const combined=[...chMats,...chVids];
+    let matsHtml='';
+    if(combined.length>0){
+      matsHtml=combined.map(m=>matRow(m)).join('');
+    }else{
+      // Default placeholder materials
+      const defaults=[
+        {type:'note',title:`Chapter ${i+1} Study Notes`,isPremium:false},
+        {type:'video',title:`${ch} — Video Lecture`,isPremium:true},
+        {type:'pdf',title:`${ch} — Exercise Sheet`,isPremium:true},
+      ];
+      matsHtml=defaults.map(m=>matRow(m)).join('');
+    }
+    return `<div class="chapter-card">
+      <div class="chapter-header" onclick="toggleChapter(this)">
+        <div class="chapter-num">${i+1}</div>
+        <div class="chapter-title">${ch}</div>
+        <div class="chapter-chevron">›</div>
+      </div>
+      <div class="chapter-body">${matsHtml}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('chapterList').innerHTML=html||'<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No chapters yet — check back soon!</div>';
+}
+
+function matRow(m){
+  const type=m.type||'note';
+  const isPrem=m.isPremium||m.premium;
+  const iconMap={pdf:'📄',video:'🎬',note:'📝',exam:'🧪'};
+  const bgMap={pdf:'mat-pdf-bg',video:'mat-vid-bg',note:'mat-note-bg',exam:'mat-pdf-bg'};
+  const icon=iconMap[type]||'📄';
+  const bg=bgMap[type]||'mat-note-bg';
+  const badgeHtml=isPrem&&!isPremium()
+    ?'<span class="mat-badge badge-premium">👑 PRO</span>'
+    :'<span class="mat-badge badge-free" style="background:var(--green-bg);color:var(--green-light);">FREE</span>';
+  const action=isPrem&&!isPremium()
+    ?`requirePremium()`
+    :`openContent(${JSON.stringify({type,title:m.title||m.name,url:m.url||m.link||'',content:m.content||'',isPremium:isPrem})})`;
+  return `<div class="material-row" onclick="${action}">
+    <div class="mat-icon ${bg}">${icon}</div>
+    <div class="mat-label">${m.title||m.name||'Resource'}</div>
+    ${badgeHtml}
+  </div>`;
+}
+
+function renderMaterials(subjectId){
+  const mats=getMaterialsForSubject(subjectId);
+  const vids=getVideosForSubject(subjectId);
+  const all=[...mats,...vids];
+  const container=document.getElementById('materialsList');
+  if(all.length===0){
+    container.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No materials uploaded yet. Check back soon!</div>';
+    return;
+  }
+  container.innerHTML=all.map(m=>{
+    const type=m.type||'note';
+    const isPrem=m.isPremium||m.premium;
+    const iconMap={pdf:'📄',video:'🎬',note:'📝',exam:'🧪'};
+    const bgClass={pdf:'doc-pdf',video:'doc-vid',note:'doc-note',exam:'doc-quiz'};
+    const icon=iconMap[type]||'📄';
+    const badge=isPrem&&!isPremium()?'badge-premium':'badge-free';
+    const badgeText=isPrem&&!isPremium()?'👑 PRO':'FREE';
+    const action=isPrem&&!isPremium()
+      ?`requirePremium()`
+      :`openContent(${JSON.stringify({type,title:m.title||m.name,url:m.url||m.link||'',content:m.content||'',isPremium:isPrem})})`;
+    return `<div class="doc-item" onclick="${action}">
+      <div class="doc-icon ${bgClass[type]||'doc-note'}">${icon}</div>
+      <div class="doc-info"><div class="doc-title">${m.title||m.name||'Resource'}</div><div class="doc-meta">${type.toUpperCase()} · ${isPrem?'Premium':'Free'}</div></div>
+      <span class="doc-badge ${badge}">${badgeText}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderPastPapers(subjectId){
+  const exams=getExamsForSubject(subjectId);
+  const container=document.getElementById('pastPapersList');
+  if(exams.length>0){
+    container.innerHTML=exams.map(e=>{
+      const isPrem=e.isPremium||e.premium;
+      const action=isPrem&&!isPremium()?`requirePremium()`:
+        `openContent(${JSON.stringify({type:'pdf',title:e.title||e.name,url:e.url||'',content:''})})`;
+      return `<div class="doc-item" onclick="${action}">
+        <div class="doc-icon doc-pdf">📝</div>
+        <div class="doc-info"><div class="doc-title">${e.title||e.name}</div><div class="doc-meta">PDF · Past Exam</div></div>
+        <span class="doc-badge ${isPrem&&!isPremium()?'badge-premium':'badge-free'}">${isPrem&&!isPremium()?'👑 PRO':'OPEN'}</span>
+      </div>`;
+    }).join('');
+  }else{
+    const subs=getSubjects();
+    const c=subs.find(s=>s.id===subjectId)||{name:subjectId};
+    container.innerHTML=`
+      <div class="doc-item" onclick="${isPremium()?`openContent({type:'pdf',title:'${c.name} Final Exam 2023',url:'',content:'<h3>Sample Past Paper</h3><p>This is a sample past paper preview. Real exam PDFs are uploaded by your admin.</p>'})`:  'requirePremium()'}">
+        <div class="doc-icon doc-pdf">📝</div><div class="doc-info"><div class="doc-title">${c.name} – Final Exam 2023</div><div class="doc-meta">PDF · With answers</div></div>
+        <span class="doc-badge ${isPremium()?'badge-free':'badge-premium'}">${isPremium()?'OPEN':'👑 PRO'}</span>
+      </div>
+      <div class="doc-item" onclick="${isPremium()?`openContent({type:'pdf',title:'${c.name} Final Exam 2022',url:'',content:'<h3>Sample Past Paper</h3><p>Past paper content here.</p>'})`: 'requirePremium()'}">
+        <div class="doc-icon doc-pdf">📝</div><div class="doc-info"><div class="doc-title">${c.name} – Final Exam 2022</div><div class="doc-meta">PDF · With answers</div></div>
+        <span class="doc-badge ${isPremium()?'badge-free':'badge-premium'}">${isPremium()?'OPEN':'👑 PRO'}</span>
+      </div>
+      <div class="doc-item" onclick="${isPremium()?`openContent({type:'exam',title:'${c.name} Mock Exam',url:'',content:''})`: 'requirePremium()'}">
+        <div class="doc-icon doc-quiz">🧪</div><div class="doc-info"><div class="doc-title">${c.name} – Interactive Mock Exam</div><div class="doc-meta">30 questions · Timed</div></div>
+        <span class="doc-badge ${isPremium()?'badge-free':'badge-premium'}">${isPremium()?'OPEN':'👑 PRO'}</span>
+      </div>`;
+  }
+}
+
+function toggleChapter(header){
+  const body=header.nextElementSibling;
+  const isOpen=body.classList.contains('open');
+  document.querySelectorAll('.chapter-body.open').forEach(b=>b.classList.remove('open'));
+  document.querySelectorAll('.chapter-chevron').forEach(c=>c.style.transform='');
+  if(!isOpen){body.classList.add('open');header.querySelector('.chapter-chevron').style.transform='rotate(90deg)'}
+}
+
+// ============================================================
+// LIBRARY
+// ============================================================
+let currentLibraryFilter='all';
+function filterLibrary(type,btn){
+  currentLibraryFilter=type;
+  document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderLibrary();
+}
+
+function renderLibrary(){
+  const mats=ls(LS_MATERIALS);
+  const vids=ls(LS_VIDEOS).map(v=>({...v,type:'video'}));
+  const exams=ls(LS_EXAMS).map(e=>({...e,type:'exam'}));
+  let all=[...mats,...vids,...exams];
+  // fallback default items
+  if(all.length===0){
+    all=[
+      {type:'note',title:'C++ Quick Reference Sheet',isPremium:false,subject:'cpp'},
+      {type:'pdf',title:'Applied Mathematics — Formula Book',isPremium:false,subject:'math'},
+      {type:'video',title:'Physics Mechanics — Full Lecture',isPremium:true,subject:'physics'},
+      {type:'note',title:'Anthropology Study Guide',isPremium:false,subject:'anthro'},
+      {type:'exam',title:'C++ Mock Exam 2024',isPremium:true,subject:'cpp'},
+      {type:'pdf',title:'English Grammar Workbook',isPremium:false,subject:'english'},
+      {type:'video',title:'Emerging Tech — AI Overview',isPremium:true,subject:'emerging'},
+      {type:'exam',title:'Civics Final Exam 2023',isPremium:true,subject:'civics'},
+    ];
+  }
+  const filtered=currentLibraryFilter==='all'?all:all.filter(m=>{
+    if(currentLibraryFilter==='pdf')return m.type==='pdf'||m.type==='note';
+    if(currentLibraryFilter==='video')return m.type==='video';
+    if(currentLibraryFilter==='note')return m.type==='note';
+    if(currentLibraryFilter==='exam')return m.type==='exam';
+    return true;
+  });
+  const iconMap={pdf:'📄',video:'🎬',note:'📝',exam:'🧪'};
+  const bgClass={pdf:'doc-pdf',video:'doc-vid',note:'doc-note',exam:'doc-quiz'};
+  document.getElementById('libraryList').innerHTML=filtered.map(m=>{
+    const type=m.type||'note';
+    const isPrem=m.isPremium||m.premium;
+    const action=isPrem&&!isPremium()
+      ?`requirePremium()`
+      :`openContent(${JSON.stringify({type,title:m.title||m.name,url:m.url||'',content:m.content||''})})`;
+    return `<div class="doc-item" onclick="${action}">
+      <div class="doc-icon ${bgClass[type]||'doc-note'}">${iconMap[type]||'📄'}</div>
+      <div class="doc-info"><div class="doc-title">${m.title||m.name}</div><div class="doc-meta">${type.toUpperCase()} · ${isPrem?'Premium':'Free'}</div></div>
+      <span class="doc-badge ${isPrem&&!isPremium()?'badge-premium':'badge-free'}">${isPrem&&!isPremium()?'👑 PRO':'FREE'}</span>
+    </div>`;
+  }).join('')||'<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">No resources found</div>';
+}
+
+// ============================================================
+// NEWS
+// ============================================================
+function renderNews(){
+  const news=ls(LS_NEWS);
+  const container=document.getElementById('newsList');
+  if(news.length===0){
+    container.innerHTML=`
+      <div class="news-item"><span class="news-tag tag-urgent">Urgent</span><div class="news-title">Final Exam Schedule Released for Semester 1</div><div class="news-preview">The Academic Office has released the complete final examination timetable. Exams begin July 15th.</div><div class="news-date">Today, 10:30 AM · Academic Office</div></div>
+      <div class="news-item"><span class="news-tag tag-academic">Academic</span><div class="news-title">C++ Programming Lab Submission — June 28th Deadline</div><div class="news-preview">All Pre-Engineering students must submit their Chapter 5 lab assignments by June 28th via the ICT portal.</div><div class="news-date">Yesterday, 3:15 PM · ICT Department</div></div>
+      <div class="news-item"><span class="news-tag tag-event">Event</span><div class="news-title">Freshmen Orientation — Day 3 Schedule</div><div class="news-preview">Tomorrow's orientation includes campus tours, library orientation, and intro sessions with stream coordinators.</div><div class="news-date">Yesterday, 9:00 AM · Student Affairs</div></div>`;
+    return;
+  }
+  container.innerHTML=news.map(n=>
+    `<div class="news-item">
+      <span class="news-tag ${tagClass(n.tag||n.type||'general')}">${n.tag||n.type||'General'}</span>
+      <div class="news-title">${n.title}</div>
+      <div class="news-preview">${n.body||n.content||''}</div>
+      <div class="news-date">${n.date||''} · ${n.source||'Campus Update'}</div>
+    </div>`).join('');
+}
+
+// ============================================================
+// PREMIUM & PAYMENT (live from admin settings)
+// ============================================================
+function renderPremium(){
+  updateStatusBadges();
+  const s=getSettings();
+  const price=s.price||'89';
+  const discount=s.discountLabel||'';
+  document.getElementById('premiumPriceDisplay').textContent=price+' ETB';
+  document.getElementById('premiumDiscountLabel').textContent=discount
+    ?`🔥 ${discount} — One-time payment · Hachalu Hundessa Campus`
+    :'One-time payment · Hachalu Hundessa Campus';
+  // Telegram support
+  const tg=ls(LS_TELEGRAM,{});
+  if(tg.supportLink){
+    document.getElementById('telegramSupportBtn').onclick=()=>window.open(tg.supportLink,'_blank');
+  }
+}
+
+function renderPayment(){
+  const s=getSettings();
+  const price=s.price||'89';
+  const acct=s.cbeAccount||'1000406065719';
+  const holder=s.cbeHolder||'Giduma Hinsermu';
+  document.getElementById('payAmountLabel').textContent=price+' ETB';
+  document.getElementById('payAmountLabel2').textContent=price+' ETB';
+  document.getElementById('payAcctNumber').textContent=acct;
+  document.getElementById('payAcctHolder').textContent='Account Name: '+holder;
+}
+
+function renderProfile(){
+  updateStatusBadges();
+  const tg=ls(LS_TELEGRAM,{});
+  if(tg.supportName)document.getElementById('tgSupportMenuLabel').textContent=tg.supportName;
+  if(tg.supportLink){document.getElementById('tgSupportMenuBtn').onclick=()=>window.open(tg.supportLink,'_blank')}
+  if(tg.newsName)document.getElementById('tgNewsMenuLabel').textContent=tg.newsName;
+  if(tg.newsLink){document.getElementById('tgNewsMenuBtn').onclick=()=>window.open(tg.newsLink,'_blank')}
+}
+
+// ============================================================
+// CONTENT VIEWER
+// ============================================================
+function openContent(item){
+  if(typeof item==='string'){try{item=JSON.parse(item)}catch{return}}
+  const overlay=document.getElementById('viewer-overlay');
+  const body=document.getElementById('viewerBody');
+  const titleEl=document.getElementById('viewerTitle');
+  titleEl.textContent=item.title||'Resource';
+  overlay.classList.add('open');
+  if(item.type==='video'){
+    body.innerHTML=`
+      <div class="viewer-type-icon">🎬</div>
+      <div class="viewer-file-name">${item.title||'Video Lecture'}</div>
+      <div class="viewer-file-meta">Video · Premium Resource</div>
+      <div class="viewer-video-placeholder">
+        <div class="viewer-play-btn">▶</div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-top:12px;color:var(--text)">${item.title}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;text-align:center">Tap play to watch this lecture.<br>HD quality · Offline available for Premium users.</div>
+      </div>
+      ${item.url?`<button class="viewer-open-btn" onclick="window.open('${item.url}','_blank')">▶ Open Video</button>`:'<div style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">Video link will be available when uploaded by admin.</div>'}`;
+  }else if(item.type==='exam'){
+    body.innerHTML=`
+      <div class="viewer-type-icon">🧪</div>
+      <div class="viewer-file-name">${item.title||'Mock Exam'}</div>
+      <div class="viewer-file-meta">Interactive Quiz · 5 Sample Questions</div>
+      <div class="viewer-quiz-area">${generateSampleQuiz(item.title)}</div>`;
+  }else{
+    // PDF / Note
+    const content=item.content||getDefaultContent(item.title);
+    body.innerHTML=`
+      <div class="viewer-type-icon">${item.type==='pdf'?'📄':'📝'}</div>
+      <div class="viewer-file-name">${item.title||'Document'}</div>
+      <div class="viewer-file-meta">${item.type==='pdf'?'PDF Document':'Study Notes'} · Tap to read</div>
+      <div class="viewer-content-box">${content}</div>
+      ${item.url?`<button class="viewer-open-btn" onclick="window.open('${item.url}','_blank')">🔗 Open Original File</button>`:''}`;
+  }
+}
+
+function getDefaultContent(title){
+  const t=(title||'').toLowerCase();
+  if(t.includes('c++')||t.includes('cpp')){
+    return `<h3>C++ Programming — Study Notes</h3>
+    <p>C++ is a powerful, general-purpose programming language used for system software, game development, and high-performance applications.</p>
+    <h3>Key Concepts</h3>
+    <ul>
+      <li><strong>Variables:</strong> int, float, char, bool, string</li>
+      <li><strong>Control Flow:</strong> if/else, switch, for, while, do-while</li>
+      <li><strong>Functions:</strong> Declaration, definition, parameters, return values</li>
+      <li><strong>Pointers:</strong> Memory addresses, dereferencing, pointer arithmetic</li>
+      <li><strong>OOP:</strong> Classes, objects, inheritance, polymorphism, encapsulation</li>
+    </ul>
+    <h3>Sample Code</h3>
+    <p><code>#include &lt;iostream&gt;</code><br><code>int main() { cout &lt;&lt; "Hello World"; return 0; }</code></p>`;
+  }
+  if(t.includes('math')||t.includes('calculus')){
+    return `<h3>Applied Mathematics — Key Formulas</h3>
+    <p>Mathematics is the foundation of engineering and natural sciences. Master these formulas for your exams.</p>
+    <h3>Derivatives</h3>
+    <ul>
+      <li>Power rule: d/dx[xⁿ] = nxⁿ⁻¹</li>
+      <li>Chain rule: d/dx[f(g(x))] = f'(g(x)) · g'(x)</li>
+      <li>Product rule: d/dx[uv] = u'v + uv'</li>
+    </ul>
+    <h3>Integration</h3>
+    <ul>
+      <li>∫xⁿ dx = xⁿ⁺¹/(n+1) + C</li>
+      <li>∫eˣ dx = eˣ + C</li>
+      <li>∫sin(x) dx = -cos(x) + C</li>
+    </ul>`;
+  }
+  if(t.includes('physics')){
+    return `<h3>Physics — Core Principles</h3>
+    <p>Physics studies the fundamental laws governing matter, energy, and their interactions.</p>
+    <h3>Newton's Laws</h3>
+    <ul>
+      <li><strong>1st Law:</strong> An object remains at rest or in uniform motion unless acted upon by a net force.</li>
+      <li><strong>2nd Law:</strong> F = ma (Force = Mass × Acceleration)</li>
+      <li><strong>3rd Law:</strong> For every action, there is an equal and opposite reaction.</li>
+    </ul>
+    <h3>Key Formulas</h3>
+    <ul>
+      <li>Kinetic Energy: KE = ½mv²</li>
+      <li>Potential Energy: PE = mgh</li>
+      <li>Work: W = Fd·cos(θ)</li>
+    </ul>`;
+  }
+  return `<h3>${title||'Study Notes'}</h3>
+  <p>These notes cover the key concepts you need for your exams. Study them carefully and refer to your textbook for detailed explanations.</p>
+  <h3>Key Points</h3>
+  <ul>
+    <li>Review your lecture notes before each exam</li>
+    <li>Practice past papers regularly</li>
+    <li>Join study groups for better understanding</li>
+    <li>Use the GPA calculator to track your progress</li>
+  </ul>
+  <p>For more detailed materials, ask your instructor or check the Premium resources section.</p>`;
+}
+
+function generateSampleQuiz(title){
+  const questions=[
+    {q:'What does CPU stand for?',opts:['Central Processing Unit','Computer Personal Unit','Core Program Utility','Central Program Utility'],ans:0},
+    {q:'Which of these is NOT a programming language?',opts:['Python','HTML5','C++','JavaScript'],ans:1},
+    {q:'What is the correct formula for kinetic energy?',opts:['KE = mgh','KE = ½mv²','KE = Fd','KE = ma'],ans:1},
+    {q:'What is the derivative of x²?',opts:['x','2x','x²','2x²'],ans:1},
+    {q:'Which article is Ethiopia\'s supreme law?',opts:['The Criminal Code','The FDRE Constitution','The Civil Code','The Commercial Code'],ans:1},
+  ];
+  return questions.map((q,i)=>`
+    <div class="quiz-q">
+      <div class="quiz-q-text">${i+1}. ${q.q}</div>
+      ${q.opts.map((opt,j)=>`<div class="quiz-option" onclick="checkAnswer(this,${j===q.ans})">${String.fromCharCode(65+j)}. ${opt}</div>`).join('')}
+    </div>`).join('');
+}
+
+function checkAnswer(el,correct){
+  if(el.classList.contains('correct')||el.classList.contains('wrong'))return;
+  el.classList.add(correct?'correct':'wrong');
+  if(!correct){
+    // highlight correct
+    const siblings=el.parentElement.querySelectorAll('.quiz-option');
+    siblings.forEach((s,i)=>{if(!s.classList.contains('wrong'))s.classList.add('correct')});
+  }
+  showToast(correct?'✅ Correct!':'❌ Incorrect — try again next time');
+}
+
+function closeViewer(){
+  document.getElementById('viewer-overlay').classList.remove('open');
+}
+
+// ============================================================
+// PAYMENT
+// ============================================================
+function copyAcct(){
+  const num=document.getElementById('payAcctNumber').textContent;
+  navigator.clipboard.writeText(num).catch(()=>{});
+  showToast('✅ Account number copied!');
+}
+function triggerUpload(){document.getElementById('receiptFile').click()}
+function handleUpload(input){
+  if(input.files&&input.files[0]){
+    document.getElementById('uploadFileName').textContent=input.files[0].name;
+    document.getElementById('uploadPreview').style.display='flex';
+    document.getElementById('uploadZone').style.display='none';
+    const btn=document.getElementById('submitPayBtn');btn.disabled=false;btn.style.opacity='1';
+  }
+}
+function removeUpload(){
+  document.getElementById('receiptFile').value='';
+  document.getElementById('uploadPreview').style.display='none';
+  document.getElementById('uploadZone').style.display='block';
+  const btn=document.getElementById('submitPayBtn');btn.disabled=true;btn.style.opacity='.5';
+}
+function submitPayment(){
+  if(!userData){showToast('Please login first');return}
+  const users=ls(LS_USERS);
+  const i=users.findIndex(u=>u.phone===userData.phone);
+  if(i>-1){
+    users[i].pending=true;
+    localStorage.setItem(LS_USERS,JSON.stringify(users));
+    userData.pending=true;
+    // Also record transaction for admin
+    const txns=ls(LS_TXNS);
+    const s=getSettings();
+    txns.push({name:userData.name,phone:userData.phone,amount:parseInt(s.price||89),date:new Date().toISOString(),status:'pending'});
+    localStorage.setItem(LS_TXNS,JSON.stringify(txns));
+  }
+  showToast('✅ Payment submitted! Awaiting admin approval.');
+  setTimeout(()=>{
+    updateStatusBadges();
+    goTo('premium');
+  },1200);
+}
+
+// ============================================================
+// GPA
+// ============================================================
+function calcGPA(){
+  const rows=document.querySelectorAll('#gradeRows .grade-row');
+  let pts=0,crs=0;
+  rows.forEach(row=>{
+    const g=parseFloat(row.querySelector('.grade-select').value);
+    const c=parseFloat(row.querySelector('.grade-credit').value)||0;
+    if(!isNaN(g)&&c>0){pts+=g*c;crs+=c}
+  });
+  const gpa=crs>0?pts/crs:0;
+  const el=document.getElementById('gpaResult');
+  el.textContent=gpa.toFixed(2);
+  el.style.color=gpa>=3.5?'var(--green-light)':gpa>=3.0?'#64B5F6':gpa>=2.0?'var(--gold)':'#EF5350';
+}
+function addGradeRow(){
+  const row=document.createElement('div');row.className='grade-row';
+  row.innerHTML=`<input class="grade-course" placeholder="Course name" oninput="calcGPA()"><select class="grade-select" onchange="calcGPA()"><option value="">Grade</option><option value="4.0">A (4.0)</option><option value="3.75">A- (3.75)</option><option value="3.5">B+ (3.5)</option><option value="3.0">B (3.0)</option><option value="2.75">B- (2.75)</option><option value="2.5">C+ (2.5)</option><option value="2.0">C (2.0)</option><option value="1.75">C- (1.75)</option><option value="1.0">D (1.0)</option><option value="0">F (0.0)</option></select><input class="grade-credit" type="number" placeholder="Cr" min="1" max="6" value="3" oninput="calcGPA()">`;
+  document.getElementById('gradeRows').appendChild(row);
+}
+function resetGPA(){
+  document.querySelectorAll('#gradeRows .grade-select').forEach(el=>el.value='');
+  document.getElementById('gpaResult').textContent='0.00';
+  document.getElementById('gpaResult').style.color='var(--green-light)';
+}
+
+// ============================================================
+// PREMIUM GATE
+// ============================================================
+function requirePremium(){
+  showToast('👑 Unlock with Premium');
+  setTimeout(()=>goTo('premium'),800);
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ============================================================
+// STORAGE SYNC (poll for admin changes every 3 seconds)
+// ============================================================
+function syncFromAdmin(){
+  if(!userData)return;
+  // Refresh user data (admin may have approved/rejected)
+  const users=ls(LS_USERS);
+  const fresh=users.find(u=>u.phone===userData.phone);
+  if(fresh&&fresh.premium!==userData.premium){
+    userData=fresh;
+    updateStatusBadges();
+    if(fresh.premium){showToast('🎉 Premium access activated!')}
+  }
+  // Apply settings live
+  const s=getSettings();
+  if(s.campusBanner){
+    const card=document.getElementById('homeBannerCard');
+    if(currentScreen==='home'){
+      card.style.display='flex';
+      document.getElementById('homeBannerTitle').textContent=s.campusName||'Campus Update';
+      document.getElementById('homeBannerText').textContent=s.campusBanner;
+    }
+  }
+}
+setInterval(syncFromAdmin,3000);
+
+// ============================================================
+// INIT — apply admin settings on load
+// ============================================================
+window.addEventListener('DOMContentLoaded',()=>{
+  const s=getSettings();
+  if(s.motivation)document.getElementById('authTagline').textContent=s.motivation;
+  if(s.campusName)document.getElementById('authCampusTag').textContent='● '+s.campusName;
+});
+</script>
+</body>
+</html>
